@@ -71,6 +71,10 @@ func readFile() {
 }
 
 func doBackup(filename, targetFolder string) {
+	if isFolderToBeCopiedTargetFolderOrInTargetFolder(filename, targetFolder) {
+		log.Println(filename + " is the same as, or within the target folder " + targetFolder + ". This artifact has not been copied")
+		return
+	}
 	file := getFileHandle(filename)
 	if file == nil {
 		return
@@ -136,6 +140,16 @@ func createTargetFile(filename, targetFolder string) *os.File {
 		return nil
 	}
 	return file
+}
+
+func isFolderToBeCopiedTargetFolderOrInTargetFolder(fullPathOfFolderToBeCopied, targetFolder string) bool {
+	if fullPathOfFolderToBeCopied == targetFolder {
+		return true
+	}
+	if strings.Contains(fullPathOfFolderToBeCopied, targetFolder) {
+		return true
+	}
+	return false
 }
 
 func checkScriptArgsAndExitIfRequired() {
