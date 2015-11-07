@@ -33,6 +33,11 @@ func main() {
 }
 
 func createLogFile(fullFolderPath string) {
+	_, err := os.Stat(fullFolderPath)
+	if err != nil && os.IsNotExist(err) {
+		createTargetFolder("", fullFolderPath)
+	}
+
 	currentTime := time.Now().Format(time.UnixDate)
 	logFile = createTargetFile(logFileNamePrefix + "-" + currentTime + "." + logFileNameSuffix, fullFolderPath)
 	log.SetOutput(logFile)
@@ -61,6 +66,7 @@ func doHandleFileConcurrently(file *os.File, targetFolder string, handler FileHa
 	var syncStructure []chan bool
 
 	defer file.Close()
+	startTime := time.Now()
 	for scanner.Scan() {
 		c := make(chan bool)
 		syncStructure = append(syncStructure, c)
@@ -74,6 +80,11 @@ func doHandleFileConcurrently(file *os.File, targetFolder string, handler FileHa
 	for i := 0; i < count; i++ {
 		<- syncStructure[i]
 	}
+
+	endTime := time.Now()
+
+	duration := endTime.Sub(startTime)
+	log.Println("Time taken: " + duration.String())
 }
 
 func doHandle(filename, targetFolder string, handler FileHandlerForLineInFile, c chan bool) {
