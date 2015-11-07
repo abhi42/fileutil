@@ -71,6 +71,7 @@ func readFile() {
 }
 
 func doBackup(filename, targetFolder string) {
+	targetFolder = stripFileOrFolderPathOfTrailingPathSeparator(targetFolder)
 	if isFolderToBeCopiedTargetFolderOrInTargetFolder(filename, targetFolder) {
 		log.Println(filename + " is the same as, or within the target folder " + targetFolder + ". This artifact has not been copied")
 		return
@@ -140,6 +141,14 @@ func createTargetFile(filename, targetFolder string) *os.File {
 		return nil
 	}
 	return file
+}
+
+func stripFileOrFolderPathOfTrailingPathSeparator(fullPath string) string {
+	sep := string(os.PathSeparator)
+	if strings.HasSuffix(fullPath, sep) {
+		return strings.TrimSuffix(fullPath, sep)
+	}
+	return fullPath
 }
 
 func isFolderToBeCopiedTargetFolderOrInTargetFolder(fullPathOfFolderToBeCopied, targetFolder string) bool {
