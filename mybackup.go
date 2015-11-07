@@ -10,9 +10,17 @@ import (
 	"strings"
 	"io"
 	"io/ioutil"
+	"time"
 )
 
 type FileHandlerForLineInFile func(line string)
+
+const (
+	logFileNamePrefix = "backupLog"
+	logFileNameSuffix = "log"
+)
+
+var logFile *os.File
 
 /*
 Input argument: Complete or relative path to a file that specifies the following:
@@ -20,7 +28,14 @@ A file where each line specifies a folder that is to be backed up (recursively) 
  */
 func main() {
 	checkScriptArgsAndExitIfRequired()
+	createLogFile(os.Args[2])
 	readFile()
+}
+
+func createLogFile(fullFolderPath string) {
+	currentTime := time.Now().Format(time.UnixDate)
+	logFile = createTargetFile(logFileNamePrefix + "-" + currentTime + "." + logFileNameSuffix, fullFolderPath)
+	log.SetOutput(logFile)
 }
 
 func ReadFileLineByLine(filename, targetFolder string, handler FileHandlerForLineInFile) {
@@ -57,7 +72,7 @@ func doHandleFileConcurrently(file *os.File, targetFolder string, handler FileHa
 
 	count := len(syncStructure)
 	for i := 0; i < count; i++ {
-		fmt.Print(<- syncStructure[i])
+		<- syncStructure[i]
 	}
 }
 
@@ -104,7 +119,7 @@ func copyFolder(fullPathOfFolderToBeCopied, targetFolder string, folderToCopy *o
 func createTargetFolder(fullFilePath, targetFolder string) string {
 	filenameWithoutPath := getFileNameWithoutPath(fullFilePath)
 	fullPathOfFolderToBeCreated := targetFolder + string(os.PathSeparator) + filenameWithoutPath
-	fmt.Println("Creating folder " + fullPathOfFolderToBeCreated)
+	log.Println("Creating folder " + fullPathOfFolderToBeCreated)
 	err := os.MkdirAll(fullPathOfFolderToBeCreated, 0777)
 	if err != nil {
 		log.Println(err)
@@ -120,7 +135,7 @@ func getFileNameWithoutPath(fullPath string) string {
 func doCopyFile(filename, targetFolder string, sourceFile *os.File) {
 	targetFile := createTargetFile(filename, targetFolder)
 	copyFile(sourceFile, targetFile)
-	fmt.Println(filename + " file copied")
+	log.Println(filename + " file copied")
 }
 
 func copyFile(sourceFile, targetFile *os.File ) {
