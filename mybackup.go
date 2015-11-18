@@ -127,6 +127,11 @@ func copyFolder(fullPathOfFolderToBeCopied, targetFolder string, folderToCopy *o
 	}
 }
 
+func performDoBackupAsync(filename, targetFolder string, c chan string) {
+	doBackup(filename, targetFolder)
+	c <- filename
+}
+
 func createTargetFolder(fullFilePath, targetFolder string) string {
 	filenameWithoutPath := getFileNameWithoutPath(fullFilePath)
 	fullPathOfFolderToBeCreated := targetFolder + string(os.PathSeparator) + filenameWithoutPath
